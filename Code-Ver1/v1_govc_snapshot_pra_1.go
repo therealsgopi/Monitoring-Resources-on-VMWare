@@ -73,7 +73,7 @@ func main() {
         log.Fatalf("Error retrieving snapshot properties: %s", err)
     }
 
-    // Get the snapshot size in bytes
+    // Getting the snapshot size in bytes
     sizeBytes := s.Snapshot.Config.StorageSize
     
 
