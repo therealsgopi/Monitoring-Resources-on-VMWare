@@ -17,15 +17,11 @@ type Snapshot struct {
 }
 
 func sizeToMB(size string) float64 {
-	var sizeMB float64
+	sizeMB, _ := strconv.ParseFloat(size[0:len(size)-2], 8)
 	if string(size[len(size)-2]) == "K" {
-		sizeMB, _ = strconv.ParseFloat(size[0:len(size)-2], 8)
 		sizeMB /= 1024
 	} else if string(size[len(size)-2]) == "G" {
-		sizeMB, _ = strconv.ParseFloat(size[0:len(size)-2], 8)
 		sizeMB *= 1024
-	} else {
-		sizeMB, _ = strconv.ParseFloat(size[0:len(size)-2], 8)
 	}
 	return sizeMB
 }
@@ -48,21 +44,34 @@ func snapLife(creationDate time.Time) int64 {
 }
 
 func storeSnapDetails(snaps []Snapshot, lines []string, detail string) {
-	layout := "Jan 1 15:04"
 	for i := 0; i < len(lines); i++ {
-		startInd := strings.Index(lines[i], "[") + 1
-		endInd := strings.Index(lines[i], "]")
-		value := lines[i][startInd:endInd]
-		if detail == "ID" {
-			snaps[i].id = value
+		if detail == "name" {
+			snaps[i].name = strings.TrimSpace(lines[i])
+		} else {
+			startInd := strings.Index(lines[i], "[") + 1
+			endInd := strings.Index(lines[i], "]")
+			value := lines[i][startInd:endInd]
+			if detail == "ID" {
+				snaps[i].id = value
+			}
+			if detail == "size" {
+				snaps[i].size = sizeToMB(value)
+			}
+			if detail == "crDate" {
+				layout := "Jan 1 15:04"
+				crDate, _ := time.Parse(layout, value)
+				snaps[i].date = crDate
+			}
 		}
-		if detail == "size" {
-			snaps[i].size = sizeToMB(value)
-		}
-		if detail == "crDate" {
-			crDate, _ := time.Parse(layout, value)
-			snaps[i].date = crDate
-		}
+	}
+}
+
+func dispSnapDetails(snaps []Snapshot) {
+	for snap := range snaps {
+		fmt.Println(snaps[snap].id)
+		fmt.Println(snaps[snap].size)
+		fmt.Println(snaps[snap].date)
+		fmt.Println(snaps[snap].name)
 	}
 }
 
@@ -127,21 +136,14 @@ func main() {
 
 	snaps := make([]Snapshot, len(lines_name))
 
-	for i, line := range lines_name {
-		snaps[i].name = strings.TrimSpace(line)
-	}
+	storeSnapDetails(snaps, lines_name, "name")
 	storeSnapDetails(snaps, lines_ID, "ID")
 	storeSnapDetails(snaps, lines_size, "size")
 	storeSnapDetails(snaps, lines_crDate, "crDate")
 
-	for snap := range snaps {
-		fmt.Println(snaps[snap].id)
-		fmt.Println(snaps[snap].size)
-		fmt.Println(snaps[snap].date)
-		fmt.Println(snaps[snap].name)
-	}
+	dispSnapDetails(snaps)
 
 	checkSnapshots(snaps, action)
 	fmt.Println(vm, action)
-
+	
 }
