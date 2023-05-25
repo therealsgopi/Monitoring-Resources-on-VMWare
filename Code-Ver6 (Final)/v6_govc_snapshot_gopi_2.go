@@ -70,6 +70,8 @@ func getVMSnapDetails() {
 	lines_size := strings.Split(strings.TrimSuffix(string(output_size), "\n"), "\n")
 	lines_crDate := strings.Split(strings.TrimSuffix(string(output_crDate), "\n"), "\n")
 
+	snaps = make([]Snapshot, len(lines_ID))
+
 	storeSnapDetails(lines_ID, "ID")
 	storeSnapDetails(lines_name, "name")
 	storeSnapDetails(lines_size, "size")
