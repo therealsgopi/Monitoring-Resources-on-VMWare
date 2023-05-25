@@ -67,11 +67,14 @@ func storeSnapDetails(snaps []Snapshot, lines []string, detail string) {
 }
 
 func dispSnapDetails(snaps []Snapshot) {
+	fmt.Println("Number of snapshots: ", len(snaps))
 	for snap := range snaps {
+		fmt.Println("Snapshot", snap, ":-")
 		fmt.Println(snaps[snap].id)
 		fmt.Println(snaps[snap].size)
 		fmt.Println(snaps[snap].date)
 		fmt.Println(snaps[snap].name)
+		fmt.Println()
 	}
 }
 
