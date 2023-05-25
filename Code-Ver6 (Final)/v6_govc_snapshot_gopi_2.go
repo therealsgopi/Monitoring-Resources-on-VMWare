@@ -111,6 +111,10 @@ func dispSnapDetails() {
 	}
 }
 
+func deleteSnapFromStruct(index int) {
+	snaps = append(snaps[:index], snaps[index+1:]...)
+}
+
 func checkSnapshots(action string) {
 	for snap := range snaps {
 		var snap_rem_flag int64
@@ -133,7 +137,7 @@ func checkSnapshots(action string) {
 			if action == "delete" {
 				cmd_snap_rem := exec.Command("govc", "snapshot.remove", "-vm", vm, snaps[snap].name)
 				output_snap_rem, _ := cmd_snap_rem.Output()
-				snaps = snaps[0:len(snaps) - 1]
+				deleteSnapFromStruct(snap)
 				fmt.Printf("ALERT: Snapshot %v of VM %v successfully deleted %v\n", snaps[snap].name, vm, output_snap_rem)
 			} else {
 				fmt.Printf("WARNING: Snapshot %v of VM %v will automatically be deleted after 5 days\n", snaps[snap].name, vm)
