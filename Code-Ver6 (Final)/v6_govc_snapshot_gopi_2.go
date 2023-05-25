@@ -16,6 +16,12 @@ type Snapshot struct {
 	date time.Time
 }
 
+var (
+	vm string
+	action string
+	snaps = []Snapshot{}
+)
+
 func sizeToMB(size string) float64 {
 	sizeMB, _ := strconv.ParseFloat(size[0:len(size)-2], 8)
 	if string(size[len(size)-2]) == "K" {
@@ -43,7 +49,34 @@ func snapLife(creationDate time.Time) int64 {
 	return days
 }
 
-func storeSnapDetails(snaps []Snapshot, lines []string, detail string) {
+func getVMSnapDetails() {
+	//resetting structure "snaps"
+	snaps = snaps[0:0]
+
+	// Specify the "govc" command and its arguments
+	cmd_ID := exec.Command("govc", "snapshot.tree", "-vm", vm, "-i")
+	cmd_name := exec.Command("govc", "snapshot.tree", "-vm", vm)
+	cmd_size := exec.Command("govc", "snapshot.tree", "-vm", vm, "-s")
+	cmd_crDate := exec.Command("govc", "snapshot.tree", "-vm", vm, "-D")
+
+	// Run the commands and capture the output
+	output_ID, _ := cmd_ID.Output()
+	output_name, _ := cmd_name.Output()
+	output_size, _ := cmd_size.Output()
+	output_crDate, _ := cmd_crDate.Output()
+
+	lines_ID := strings.Split(strings.TrimSuffix(string(output_ID), "\n"), "\n")
+	lines_name := strings.Split(strings.TrimSuffix(string(output_name), "\n"), "\n")
+	lines_size := strings.Split(strings.TrimSuffix(string(output_size), "\n"), "\n")
+	lines_crDate := strings.Split(strings.TrimSuffix(string(output_crDate), "\n"), "\n")
+
+	storeSnapDetails(lines_ID, "ID")
+	storeSnapDetails(lines_name, "name")
+	storeSnapDetails(lines_size, "size")
+	storeSnapDetails(lines_crDate, "crDate")
+}
+
+func storeSnapDetails(lines []string, detail string) {
 	for i := 0; i < len(lines); i++ {
 		if detail == "name" {
 			snaps[i].name = strings.TrimSpace(lines[i])
@@ -66,7 +99,7 @@ func storeSnapDetails(snaps []Snapshot, lines []string, detail string) {
 	}
 }
 
-func dispSnapDetails(snaps []Snapshot) {
+func dispSnapDetails() {
 	fmt.Println("Number of snapshots: ", len(snaps))
 	for snap := range snaps {
 		fmt.Println("Snapshot", snap, ":-")
@@ -78,7 +111,7 @@ func dispSnapDetails(snaps []Snapshot) {
 	}
 }
 
-func checkSnapshots(snaps []Snapshot, action string) {
+func checkSnapshots(action string) {
 	for snap := range snaps {
 		var snap_rem_flag int64
 		snapDays := snapLife(snaps[snap].date)
@@ -109,11 +142,6 @@ func checkSnapshots(snaps []Snapshot, action string) {
 	}
 }
 
-var (
-	vm string
-	action string
-)
-
 func init() {
 	flag.StringVar(&vm, "vm", "Host2_Mint3", "name of the vm whose snapshots are to be checked")
 	flag.StringVar(&action, "action", "warn", "specify if snapshots are to be deleted or warned")
@@ -121,37 +149,15 @@ func init() {
 }
 
 func main() {
-	// Specify the "govc" command and its arguments
-	cmd_crDate := exec.Command("govc", "snapshot.tree", "-vm", vm, "-D")
-	cmd_ID := exec.Command("govc", "snapshot.tree", "-vm", vm, "-i")
-	cmd_size := exec.Command("govc", "snapshot.tree", "-vm", vm, "-s")
-	cmd_name := exec.Command("govc", "snapshot.tree", "-vm", vm)
-
-	// Run the commands and capture the output
-	output_crDate, _ := cmd_crDate.Output()
-	output_ID, _ := cmd_ID.Output()
-	output_size, _ := cmd_size.Output()
-	output_name, _ := cmd_name.Output()
-
-	lines_ID := strings.Split(strings.TrimSuffix(string(output_ID), "\n"), "\n")
-	lines_size := strings.Split(strings.TrimSuffix(string(output_size), "\n"), "\n")
-	lines_crDate := strings.Split(strings.TrimSuffix(string(output_crDate), "\n"), "\n")
-	lines_name := strings.Split(strings.TrimSuffix(string(output_name), "\n"), "\n")
-
-	snaps := make([]Snapshot, len(lines_name))
-
-	storeSnapDetails(snaps, lines_name, "name")
-	storeSnapDetails(snaps, lines_ID, "ID")
-	storeSnapDetails(snaps, lines_size, "size")
-	storeSnapDetails(snaps, lines_crDate, "crDate")
-
+	getVMSnapDetails()
+	
 	fmt.Println("Details of Snapshots of VM", vm, " before Checking:-")	
-	dispSnapDetails(snaps)
+	dispSnapDetails()
 
-	checkSnapshots(snaps, action)
+	checkSnapshots(action)
 	
 	if action == "delete" {
 		fmt.Println("Details of Snapshots of VM", vm, " after Checking:-")	
-		dispSnapDetails(snaps)
+		dispSnapDetails()
 	}
 }
