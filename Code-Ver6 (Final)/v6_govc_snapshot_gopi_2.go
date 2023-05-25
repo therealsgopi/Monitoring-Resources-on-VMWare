@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -48,25 +47,21 @@ func snapLife(creationDate time.Time) int64 {
 	return days
 }
 
-func into_struct(snaps []Snapshot, lines []string, d int) {
-	layout := "Jan 2 15:04"
+func storeSnapDetails(snaps []Snapshot, lines []string, detail string) {
+	layout := "Jan 1 15:04"
 	for i := 0; i < len(lines); i++ {
 		startInd := strings.Index(lines[i], "[") + 1
 		endInd := strings.Index(lines[i], "]")
 		value := lines[i][startInd:endInd]
-		if d == 0 {
+		if detail == "ID" {
 			snaps[i].id = value
 		}
-		if d == 1 {
+		if detail == "size" {
 			snaps[i].size = sizeToMB(value)
 		}
-		if d == 2 {
-			t, err := time.Parse(layout, value)
-			if err != nil {
-				fmt.Println("Error parsing input string:", err)
-				return
-			}
-			snaps[i].date = t
+		if detail == "crDate" {
+			crDate, _ := time.Parse(layout, value)
+			snaps[i].date = crDate
 		}
 	}
 }
@@ -92,10 +87,7 @@ func checkSnapshots(snaps []Snapshot, action string) {
 		if snap_rem_flag == 1 {
 			if action == "delete" {
 				cmd_snap_rem := exec.Command("govc", "snapshot.remove", "-vm", vm, snaps[snap].name)
-				output_snap_rem, err_snap_rem := cmd_snap_rem.Output()
-				if err_snap_rem != nil {
-					log.Fatalf("Failed to run govc command: %v", err_snap_rem)
-				}
+				output_snap_rem, _ := cmd_snap_rem.Output()
 				fmt.Printf("ALERT: Snapshot %v of VM %v successfully deleted %v\n", snaps[snap].name, vm, output_snap_rem)
 			} else {
 				fmt.Printf("WARNING: Snapshot %v of VM %v will automatically be deleted after 5 days\n", snaps[snap].name, vm)
@@ -117,42 +109,30 @@ func init() {
 
 func main() {
 	// Specify the "govc" command and its arguments
-	cmd_d := exec.Command("govc", "snapshot.tree", "-vm", vm, "-D")
-	cmd_i := exec.Command("govc", "snapshot.tree", "-vm", vm, "-i")
-	cmd_s := exec.Command("govc", "snapshot.tree", "-vm", vm, "-s")
-	cmd_n := exec.Command("govc", "snapshot.tree", "-vm", vm)
+	cmd_crDate := exec.Command("govc", "snapshot.tree", "-vm", vm, "-D")
+	cmd_ID := exec.Command("govc", "snapshot.tree", "-vm", vm, "-i")
+	cmd_size := exec.Command("govc", "snapshot.tree", "-vm", vm, "-s")
+	cmd_name := exec.Command("govc", "snapshot.tree", "-vm", vm)
 
-	// Run the command and capture the output
-	output_d, err_d := cmd_d.Output()
-	output_i, err_i := cmd_i.Output()
-	output_s, err_s := cmd_s.Output()
-	output_n, err_n := cmd_n.Output()
-	if err_d != nil {
-		log.Fatalf("Failed to run govc command: %v", err_d)
-	}
-	if err_i != nil {
-		log.Fatalf("Failed to run govc command: %v", err_i)
-	}
-	if err_s != nil {
-		log.Fatalf("Failed to run govc command: %v", err_s)
-	}
-	if err_n != nil {
-		log.Fatalf("Failed to run govc command: %v", err_n)
-	}
+	// Run the commands and capture the output
+	output_crDate, _ := cmd_crDate.Output()
+	output_ID, _ := cmd_ID.Output()
+	output_size, _ := cmd_size.Output()
+	output_name, _ := cmd_name.Output()
 
-	lines_i := strings.Split(strings.TrimSuffix(string(output_i), "\n"), "\n")
-	lines_s := strings.Split(strings.TrimSuffix(string(output_s), "\n"), "\n")
-	lines_d := strings.Split(strings.TrimSuffix(string(output_d), "\n"), "\n")
-	lines_n := strings.Split(strings.TrimSuffix(string(output_n), "\n"), "\n")
+	lines_ID := strings.Split(strings.TrimSuffix(string(output_ID), "\n"), "\n")
+	lines_size := strings.Split(strings.TrimSuffix(string(output_size), "\n"), "\n")
+	lines_crDate := strings.Split(strings.TrimSuffix(string(output_crDate), "\n"), "\n")
+	lines_name := strings.Split(strings.TrimSuffix(string(output_name), "\n"), "\n")
 
-	snaps := make([]Snapshot, len(lines_n))
+	snaps := make([]Snapshot, len(lines_name))
 
-	for i, line := range lines_n {
+	for i, line := range lines_name {
 		snaps[i].name = strings.TrimSpace(line)
 	}
-	into_struct(snaps, lines_i, 0)
-	into_struct(snaps, lines_s, 1)
-	into_struct(snaps, lines_d, 2)
+	storeSnapDetails(snaps, lines_ID, "ID")
+	storeSnapDetails(snaps, lines_size, "size")
+	storeSnapDetails(snaps, lines_crDate, "crDate")
 
 	for snap := range snaps {
 		fmt.Println(snaps[snap].id)
@@ -161,17 +141,7 @@ func main() {
 		fmt.Println(snaps[snap].name)
 	}
 
-	/*
-	       cmd_snap_rem := exec.Command("govc", "snapshot.remove", "-vm", "Host2_Mint3", "trial1_1")
-	       output_snap_rem, err_snap_rem := cmd_snap_rem.Output()
-	       if err_snap_rem != nil {
-	   		log.Fatalf("Failed to run govc command: %v", err_snap_rem)
-	   	}
-	   	fmt.Println(output_snap_rem)
-	*/
 	checkSnapshots(snaps, action)
 	fmt.Println(vm, action)
 
 }
-
-
