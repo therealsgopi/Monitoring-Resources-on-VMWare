@@ -97,6 +97,7 @@ func checkSnapshots(snaps []Snapshot, action string) {
 			if action == "delete" {
 				cmd_snap_rem := exec.Command("govc", "snapshot.remove", "-vm", vm, snaps[snap].name)
 				output_snap_rem, _ := cmd_snap_rem.Output()
+				snaps = snaps[0:len(snaps) - 1]
 				fmt.Printf("ALERT: Snapshot %v of VM %v successfully deleted %v\n", snaps[snap].name, vm, output_snap_rem)
 			} else {
 				fmt.Printf("WARNING: Snapshot %v of VM %v will automatically be deleted after 5 days\n", snaps[snap].name, vm)
@@ -141,9 +142,13 @@ func main() {
 	storeSnapDetails(snaps, lines_size, "size")
 	storeSnapDetails(snaps, lines_crDate, "crDate")
 
+	fmt.Println("Details of Snapshots of VM", vm, " before Checking:-")	
 	dispSnapDetails(snaps)
 
 	checkSnapshots(snaps, action)
-	fmt.Println(vm, action)
 	
+	if action == "delete" {
+		fmt.Println("Details of Snapshots of VM", vm, " after Checking:-")	
+		dispSnapDetails(snaps)
+	}
 }
