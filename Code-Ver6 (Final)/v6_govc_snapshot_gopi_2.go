@@ -24,7 +24,7 @@ var (
 	snaps = []Snapshot{}
 )
 
-// function to convert size of snapshots to MB from KB & GB
+// function for converting size of snapshots to MB from KB & GB
 func sizeToMB(size string) float64 {
 	sizeMB, _ := strconv.ParseFloat(size[0:len(size)-2], 8)
 	if string(size[len(size)-2]) == "K" {
@@ -87,7 +87,7 @@ func getVMSnapDetails() {
 	storeSnapDetails(lines_crDate, "crDate")
 }
 
-// function to store all the details of 
+// function for storing all the details of 
 //all the snapshots in the structure SNAPS
 func storeSnapDetails(lines []string, detail string) {
 	for i := 0; i < len(lines); i++ {
@@ -112,7 +112,7 @@ func storeSnapDetails(lines []string, detail string) {
 	}
 }
 
-// function to display all the details 
+// function for displaying all the details 
 // of all the snapshots in the structure SNAPS
 func dispSnapDetails() {
 	fmt.Println("Number of snapshots: ", len(snaps))
@@ -126,13 +126,13 @@ func dispSnapDetails() {
 	}
 }
 
-// function to delete the snapshot details from the 
+// function for deleting the snapshot details from the 
 // structure SNAPS when it is deleted from the storage
 func deleteSnapFromStruct(index int) {
 	snaps = append(snaps[:index], snaps[index+1:]...)
 }
 
-// function to check all the snapshots stored in 
+// function for checking all the snapshots stored in 
 // the structure SNAPS and take necessary action
 func checkSnapshots(action string) {
 	for snap := range snaps {
