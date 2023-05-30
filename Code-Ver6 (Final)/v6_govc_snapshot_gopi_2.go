@@ -56,6 +56,12 @@ func snapLife(creationDate time.Time) int64 {
 
 // function to get the snapshot details of a specific VM
 func getVMSnapDetails() {
+	/*
+	output_ID := "[snapshot-41]  trial1\n [snapshot-42]  trial1_1\n [snapshot-43]  trial2"
+	output_size := "[19.6KB]  trial1\n [1.0MB]  trial1_1\n [169.3MB]  trial2"
+	output_crDate := "[May 25 17:38]  trial1\n [May 8 11:45]  trial1_1\n [May 15 12:02]  trial2"
+	output_name := "trial1\n trial1_1\n trial2"
+	*/
 	//resetting structure SNAPS
 	snaps = snaps[0:0]
 
@@ -115,9 +121,9 @@ func storeSnapDetails(lines []string, detail string) {
 // function for displaying all the details 
 // of all the snapshots in the structure SNAPS
 func dispSnapDetails() {
-	fmt.Println("Number of snapshots: ", len(snaps))
+	fmt.Println("Number of snapshots:", len(snaps))
 	for snap := range snaps {
-		fmt.Println("Snapshot", snap, ":-")
+		fmt.Println("Snapshot", (snap + 1), ":-")
 		fmt.Println(snaps[snap].id)
 		fmt.Println(snaps[snap].size)
 		fmt.Println(snaps[snap].date)
@@ -177,7 +183,7 @@ func init() {
 func main() {
 	getVMSnapDetails()
 	
-	fmt.Println("Details of Snapshots of VM", vm, " before Checking:-")	
+	fmt.Println("Details of Snapshots of VM", vm, "before Checking:-")	
 	dispSnapDetails()
 
 	checkSnapshots(action)
