@@ -59,9 +59,9 @@ func snapLife(creationDate time.Time) int64 {
 func getVMSnapDetails() {
 	/*
 	output_ID := "[snapshot-41]  trial1\n [snapshot-42]  trial1_1\n [snapshot-43]  trial2"
+	output_name := "trial1\n trial1_1\n trial2"
 	output_size := "[5555MB]  trial1\n [550MB]  trial1_1\n [1.25GB]  trial2"
 	output_crDate := "[May 25 17:38]  trial1\n [Dec 1 11:45]  trial1_1\n [Apr 15 12:02]  trial2"
-	output_name := "trial1\n trial1_1\n trial2"
 	*/
 	//resetting array SNAPS
 	snaps = snaps[0:0]
