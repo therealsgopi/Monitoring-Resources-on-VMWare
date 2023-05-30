@@ -110,7 +110,7 @@ func storeSnapDetails(lines []string, detail string) {
 				snaps[i].size = sizeToMB(value)
 			}
 			if detail == "crDate" {
-				layout := "Jan 1 15:04"
+				layout := "Jan 2 15:04"
 				crDate, _ := time.Parse(layout, value)
 				snaps[i].date = crDate
 			}
