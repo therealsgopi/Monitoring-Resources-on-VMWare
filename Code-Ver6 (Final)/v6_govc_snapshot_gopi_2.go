@@ -124,10 +124,10 @@ func dispSnapDetails() {
 	fmt.Println("Number of snapshots:", len(snaps))
 	for snap := range snaps {
 		fmt.Println("Snapshot", (snap + 1), ":-")
-		fmt.Println(snaps[snap].id)
-		fmt.Println(snaps[snap].size)
-		fmt.Println(snaps[snap].date)
-		fmt.Println(snaps[snap].name)
+		fmt.Println("ID:", snaps[snap].id)
+		fmt.Println("Name:", snaps[snap].name)
+		fmt.Println("Size:", snaps[snap].size)
+		fmt.Println("Date:", snaps[snap].date)
 		fmt.Println()
 	}
 }
@@ -189,7 +189,7 @@ func main() {
 	checkSnapshots(action)
 	
 	if action == "delete" {
-		fmt.Println("Details of Snapshots of VM", vm, " after Checking:-")	
+		fmt.Println("Details of Snapshots of VM", vm, "after Checking:-")	
 		dispSnapDetails()
 	}
 }
