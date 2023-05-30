@@ -22,6 +22,7 @@ var (
 	vm string
 	action string
 	snaps = []Snapshot{}
+	illegalSnaps = []int{}
 )
 
 // function for converting size of snapshots to MB from KB & GB
@@ -58,11 +59,11 @@ func snapLife(creationDate time.Time) int64 {
 func getVMSnapDetails() {
 	/*
 	output_ID := "[snapshot-41]  trial1\n [snapshot-42]  trial1_1\n [snapshot-43]  trial2"
-	output_size := "[19.6KB]  trial1\n [1.0MB]  trial1_1\n [169.3MB]  trial2"
-	output_crDate := "[May 25 17:38]  trial1\n [May 8 11:45]  trial1_1\n [May 15 12:02]  trial2"
+	output_size := "[5555MB]  trial1\n [550MB]  trial1_1\n [1.25GB]  trial2"
+	output_crDate := "[May 25 17:38]  trial1\n [Dec 1 11:45]  trial1_1\n [Apr 15 12:02]  trial2"
 	output_name := "trial1\n trial1_1\n trial2"
 	*/
-	//resetting structure SNAPS
+	//resetting array SNAPS
 	snaps = snaps[0:0]
 
 	// Specify the "govc" command and its arguments
@@ -76,7 +77,7 @@ func getVMSnapDetails() {
 	output_name, _ := cmd_name.Output()
 	output_size, _ := cmd_size.Output()
 	output_crDate, _ := cmd_crDate.Output()
-
+	
 	// splitting the output to form an array of individual lines of details for each snapshot
 	lines_ID := strings.Split(strings.TrimSuffix(string(output_ID), "\n"), "\n")
 	lines_name := strings.Split(strings.TrimSuffix(string(output_name), "\n"), "\n")
@@ -139,35 +140,39 @@ func deleteSnapFromStruct(index int) {
 }
 
 // function for checking all the snapshots stored in 
-// the structure SNAPS and take necessary action
-func checkSnapshots(action string) {
+// the structure SNAPS and mark the illegal ones
+func checkSnapshots() {
+	//resetting array illegalSnaps
+	illegalSnaps = illegalSnaps[0:0]
+
 	for snap := range snaps {
-		var snap_rem_flag int64
 		snapDays := snapLife(snaps[snap].date)
 		if snaps[snap].size > 5120 {
 			if snapDays > 3 {
-				snap_rem_flag = 1
+				illegalSnaps = append(illegalSnaps, snap)
 			}
 		} else if snaps[snap].size > 1024 {
 			if snapDays > 30 {
-				snap_rem_flag = 1
+				illegalSnaps = append(illegalSnaps, snap)
 			}
 		} else {
 			if snapDays > 180 {
-				snap_rem_flag = 1
+				illegalSnaps = append(illegalSnaps, snap)
 			}
 		}
+	}
+}
 
-		// taking action if the snapshot is marked illegal
-		if snap_rem_flag == 1 {
-			if action == "delete" {
-				cmd_snap_rem := exec.Command("govc", "snapshot.remove", "-vm", vm, snaps[snap].name)
-				output_snap_rem, _ := cmd_snap_rem.Output()
-				deleteSnapFromStruct(snap)
-				fmt.Printf("ALERT: Snapshot %v of VM %v successfully deleted %v\n", snaps[snap].name, vm, output_snap_rem)
-			} else {
-				fmt.Printf("WARNING: Snapshot %v of VM %v will automatically be deleted after 5 days\n", snaps[snap].name, vm)
-			}
+// funtion for taking action on the snapshots that are marked illegal
+func takeAction() {
+	for ind, illegalSnapInd := range illegalSnaps {
+		if action == "delete" {
+			cmd_snap_rem := exec.Command("govc", "snapshot.remove", "-vm", vm, snaps[illegalSnapInd - ind].name)
+			output_snap_rem, _ := cmd_snap_rem.Output()
+			fmt.Printf("ALERT: Snapshot %v of VM %v successfully deleted %v\n", snaps[illegalSnapInd - ind].name, vm, output_snap_rem)
+			deleteSnapFromStruct(illegalSnapInd - ind)
+		} else {
+			fmt.Printf("WARNING: Snapshot %v of VM %v will automatically be deleted after 5 days\n", snaps[illegalSnapInd].name, vm)
 		}
 	}
 }
@@ -183,13 +188,14 @@ func init() {
 func main() {
 	getVMSnapDetails()
 	
-	fmt.Println("Details of Snapshots of VM", vm, "before Checking:-")	
+	fmt.Println("\nDetails of Snapshots of VM", vm, "before Checking:-")	
 	dispSnapDetails()
 
-	checkSnapshots(action)
+	checkSnapshots()
+	takeAction()
 	
 	if action == "delete" {
-		fmt.Println("Details of Snapshots of VM", vm, "after Checking:-")	
+		fmt.Println("\nDetails of Snapshots of VM", vm, "after Checking:-")	
 		dispSnapDetails()
 	}
 }
