@@ -58,10 +58,10 @@ func snapLife(creationDate time.Time) int64 {
 // function to get the snapshot details of a specific VM
 func getVMSnapDetails() {
 	/*
-	output_ID := "[snapshot-41]  trial1\n [snapshot-42]  trial1_1\n [snapshot-43]  trial2"
-	output_name := "trial1\n trial1_1\n trial2"
-	output_size := "[5555MB]  trial1\n [550MB]  trial1_1\n [1.25GB]  trial2"
-	output_crDate := "[May 25 17:38]  trial1\n [Dec 1 11:45]  trial1_1\n [Apr 15 12:02]  trial2"
+	output_ID := "[snapshot-41]  trial1\n [snapshot-42]  trial2\n [snapshot-43]  trial3\n [snapshot-44]  trial4"
+	output_name := "trial1\n trial2\n trial3\n trial4"
+	output_size := "[5555MB]  trial1\n [750MB]  trial2\n [550MB]  trial3\n [1.25GB]  trial4"
+	output_crDate := "[May 25 17:38]  trial1\n [Mar 20 17:38]  trial2\n [Nov 1 11:45]  trial3\n [Apr 15 12:02]  trial4"
 	*/
 	//resetting array SNAPS
 	snaps = snaps[0:0]
